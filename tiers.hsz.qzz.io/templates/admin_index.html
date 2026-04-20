@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSZ Admin - Players</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background: #f8f9fa; }
+        .container { margin-top: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Admin Panel - HSZ Tiers</h1>
+            <div class="d-flex gap-2">
+                <a href="/save_static" class="btn btn-success">Save state to HTML</a>
+                <a href="/add" class="btn btn-primary">Add New Player</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Region</th>
+                    <th>Tier</th>
+                    <th>Overall Rank</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in players %}
+                <tr>
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.region }}</td>
+                    <td><span class="badge bg-secondary">{{ player.tier }}</span></td>
+                    <td>#{{ player.overall_rank }}</td>
+                    <td>
+                        {% if player.is_untested %}
+                        <span class="badge bg-warning text-dark">Untested</span>
+                        {% endif %}
+                        {% if player.is_banned %}
+                        <span class="badge bg-danger">Banned</span>
+                        {% else %}
+                        <span class="badge bg-success">Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/edit/{{ player.id }}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="/delete/{{ player.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</a>
+                        
+                        {% if not player.is_banned %}
+                        <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#banModal{{ player.id }}">Ban</button>
+                        {% else %}
+                        <a href="/unban/{{ player.id }}" class="btn btn-sm btn-info">Unban</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modals -->
+    {% for player in players %}
+    <div class="modal fade" id="banModal{{ player.id }}">
+      <div class="modal-dialog">
+        <form action="/ban/{{ player.id }}" method="POST" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Ban {{ player.name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="text" name="reason" class="form-control" placeholder="Reason for ban" required>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Confirm Ban</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

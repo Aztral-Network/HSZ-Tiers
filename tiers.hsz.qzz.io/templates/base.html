@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCPE Tiers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0e0e10;
+            --bg-header: #18181b;
+            --bg-card: #1f1f23;
+            --border: #2f2f35;
+            --accent: #bb86fc;
+            --text-main: #efeff1;
+            --text-dim: #adadb8;
+            
+        /* Metallic Colors */
+        --platinum: #e5e4e2;
+        --gold: #ffd700;
+        --silver: #c0c0c0;
+        --bronze: #cd7f32;
+
+        /* Tier Gradients (Metallic) */
+        --grad-platinum: linear-gradient(90deg, #e5e4e2 0%, #7f7f7f 100%);
+        --grad-gold: linear-gradient(90deg, #ffd700 0%, #b8860b 100%);
+        --grad-silver: linear-gradient(90deg, #c0c0c0 0%, #4a4a4a 100%);
+        --grad-bronze: linear-gradient(90deg, #cd7f32 0%, #8b4513 100%);
+
+        /* Original Tier Colors & Gradients (kept for reference or fallback if needed) */
+        --grad-none: linear-gradient(90deg, #2f2f35 0%, #1f1f23 100%);
+    }
+
+    body {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Rank Special Colors & Shine Animation */
+    @keyframes shineMovement {
+        0% { transform: translateX(-150%); }
+        30% { transform: translateX(150%); }
+        100% { transform: translateX(150%); }
+    }
+
+    /* Container for the shine effect - perfectly matched to the rank shape */
+    .rank-card.top-1::after, .rank-card.top-2::after, .rank-card.top-3::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 115px; /* Reduced from 120px to create 5px gap */
+        height: 100%;
+        clip-path: polygon(0 0, 100% 0, 75% 100%, 0% 100%);
+        z-index: 4;
+        pointer-events: none;
+        overflow: hidden;
+        display: block !important;
+        background: linear-gradient(
+            90deg, 
+            transparent 0%, 
+            rgba(255,255,255,0) 40%, 
+            rgba(255,255,255,0.6) 50%, 
+            rgba(255,255,255,0) 60%, 
+            transparent 100%
+        );
+        background-size: 200% 100%;
+        animation: shineGradient 3s infinite linear;
+    }
+
+    /* Ensure rank number is on top of everything */
+    .card-rank {
+        width: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        font-weight: 900;
+        font-style: italic;
+        color: rgba(255,255,255,0.9);
+        z-index: 5 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        flex-shrink: 0;
+        letter-spacing: -1px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Rank Cards Layout */
+    .ranking-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .rank-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        padding: 0;
+        height: 80px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .rank-card:hover {
+        transform: translateY(-3px) scale(1.005);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.5);
+        border-color: rgba(255,255,255,0.2);
+    }
+
+    .card-rank {
+        width: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        font-weight: 900;
+        font-style: italic;
+        color: rgba(255,255,255,0.9);
+        z-index: 5 !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        flex-shrink: 0;
+        letter-spacing: -1px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-left: 15px; /* Added 5px for gap spacing */
+        padding-right: 110px; /* Space for body render */
+        z-index: 2;
+    }
+
+    .card-name-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+
+    .p-name {
+        font-weight: 800;
+        font-size: 1.3rem;
+        letter-spacing: -0.5px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .card-badges {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .card-body-render {
+        position: absolute;
+        right: 0px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100px;
+        height: 120px;
+        z-index: 3;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-body-render img {
+        height: 140px; /* Slightly taller than card */
+        width: auto;
+        image-rendering: pixelated;
+        filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));
+    }
+
+    .card-skin {
+        width: 80px;
+        height: 80px;
+        background: rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        z-index: 2;
+        border-left: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .card-skin img, .card-skin .head-placeholder {
+        width: 64px;
+        height: 64px;
+        image-rendering: pixelated;
+    }
+
+    .rank-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 115px; /* Reduced from 120px for 5px gap */
+        height: 100%;
+        background: rgba(255,255,255,0.05);
+        clip-path: polygon(0 0, 100% 0, 75% 100%, 0% 100%);
+        z-index: 1;
+    }
+
+    .rank-card::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 150px;
+        height: 100%;
+        background: rgba(0,0,0,0.2);
+        clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
+        z-index: 1;
+    }
+
+    /* Metallic Tier Assignments (Applied to side bar) */
+    /* HT1: Platinum */
+    .rank-card.tier-HT1::before { background: var(--grad-platinum) !important; }
+    .t-HT1 { color: var(--platinum); border-color: rgba(229, 228, 226, 0.4); }
+
+    /* LT1 & HT2: Gold */
+    .rank-card.tier-LT1::before, .rank-card.tier-HT2::before { background: var(--grad-gold) !important; }
+    .t-LT1, .t-HT2 { color: var(--gold); border-color: rgba(255, 215, 0, 0.4); }
+
+    /* HT3, LT2, LT3: Silver */
+    .rank-card.tier-HT3::before, .rank-card.tier-LT2::before, .rank-card.tier-LT3::before 
+    { background: var(--grad-silver) !important; }
+    .t-HT3, .t-LT2, .t-LT3 { color: var(--silver); border-color: rgba(192, 192, 192, 0.4); }
+
+    .rank-card.tier-None::before { background: var(--grad-none) !important; }
+
+    /* Top Rank Special Colors (Overrides Tier Colors) */
+    .rank-card.top-1::before { background: var(--grad-gold) !important; opacity: 1; border-right: 1px solid rgba(255,255,255,0.2); }
+    .rank-card.top-2::before { background: var(--grad-silver) !important; opacity: 1; border-right: 1px solid rgba(255,255,255,0.2); }
+    .rank-card.top-3::before { background: var(--grad-bronze) !important; opacity: 1; border-right: 1px solid rgba(255,255,255,0.2); }
+
+    /* Universal Badge Styles */
+
+    .p-region {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.8);
+        background: rgba(0,0,0,0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .card-rank { width: 60px; font-size: 1.5rem; }
+        .p-name { font-size: 1.1rem; }
+        .search-bar { width: 150px; }
+        .nav-right { display: none; }
+    }
+            
+        .top-nav {
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-wrap i {
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(187, 134, 252, 0.5);
+        }
+
+        .logo-wrap span {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 4px;
+            margin-left: 20px;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
+        .nav-links a.active {
+            color: var(--accent);
+            background: rgba(187, 134, 252, 0.1);
+        }
+
+        .search-bar {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 16px;
+            width: 300px;
+            margin: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--accent);
+            background: rgba(0,0,0,0.4);
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            color: #fff;
+            outline: none;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 16px;
+            margin-right: 20px;
+            align-items: center;
+        }
+
+        .lang-btn {
+            width: 28px;
+            height: 20px;
+            display: block;
+            text-decoration: none;
+            transition: transform 0.2s, filter 0.2s, opacity 0.2s;
+            filter: grayscale(100%);
+            opacity: 0.4;
+            background-size: cover;
+            background-position: center;
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .lang-btn.es {
+            background-image: url('https://flagcdn.com/es.svg');
+        }
+
+        .lang-btn.pt {
+            background-image: url('https://flagcdn.com/br.svg');
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.2);
+            opacity: 0.8;
+            filter: grayscale(40%);
+        }
+
+        .lang-btn.active {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .server-status {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #03dac6;
+            background: rgba(3, 218, 198, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .server-status span { width: 8px; height: 8px; background: #03dac6; border-radius: 50%; box-shadow: 0 0 8px #03dac6; }
+
+        .discord-pill {
+            background: #5865F2;
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .discord-pill:hover { transform: translateY(-1px); filter: brightness(1.1); }
+
+        /* Main Content */
+        .content-area {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 24px;
+        }
+
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(0,0,0,0.2);
+            text-align: left;
+            padding: 20px 24px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Distribution for index page (4 columns) */
+        .overall-table th:nth-child(1) { width: 10%; }
+        .overall-table th:nth-child(2) { width: 50%; }
+        .overall-table th:nth-child(3) { width: 20%; text-align: center; }
+        .overall-table th:nth-child(4) { width: 20%; text-align: center; }
+        .overall-table td:nth-child(3), .overall-table td:nth-child(4) { text-align: center; }
+
+        .banned-table th:nth-child(1) { width: 40%; }
+        .banned-table th:nth-child(2) { width: 60%; }
+
+        td {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        .p-rank { font-weight: 700; color: var(--text-dim); width: 40px; }
+
+        .p-flex { display: flex; align-items: center; gap: 16px; }
+
+        .s-box {
+            width: 80px;
+            height: 80px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .head-img {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        .p-name { font-weight: 700; font-size: 1.1rem; }
+        
+        .p-untested {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #111;
+            background: #ffb841;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .p-note {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .disclaimer-banner {
+            background: rgba(88, 101, 242, 0.1);
+            border: 1px solid rgba(88, 101, 242, 0.2);
+            color: #5865F2;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .disclaimer-banner i {
+            font-size: 1.2rem;
+        }
+
+        .head-placeholder {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: #111;
+        }
+
+        .t-None { color: #555; }
+
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        {% for i in range(1, 41) %}
+        tr:nth-child({{ i }}), .rank-card:nth-child({{ i }}) { 
+            animation: rowIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+            animation-delay: {{ i * 0.04 }}s; 
+            opacity: 0; 
+        }
+        {% endfor %}
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="nav-left">
+            <a href="/" class="logo-wrap">
+                <i class="fas fa-sword"></i>
+                <span>MCPE Tiers</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="{{ 'active' if active_tab == 'home' else '' }}">{{ t.overall }}</a>
+                <a href="/banned" class="{{ 'active' if active_tab == 'banned' else '' }}">{{ t.banned }}</a>
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search" style="color: var(--text-dim); font-size: 0.8rem;"></i>
+                <input type="text" id="playerSearch" placeholder="{{ t.search }}">
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="lang-switch">
+                <a href="/set_lang/es" class="lang-btn es {{ 'active' if current_lang == 'es' else '' }}" title="Español"></a>
+                <a href="/set_lang/pt" class="lang-btn pt {{ 'active' if current_lang == 'pt' else '' }}" title="Português"></a>
+            </div>
+            <div class="server-status">
+                <span></span>
+                {{ t.server_ip }}: play.hsz.qzz.io:25634
+            </div>
+            <a href="https://dsc.gg/w10lounge" class="discord-pill">
+                <i class="fab fa-discord"></i> Discord
+            </a>
+        </div>
+    </div>
+
+    <div class="content-area">
+        {% block content %}{% endblock %}
+        
+        <div id="noResults" style="display: none; text-align: center; padding: 60px 20px; color: var(--text-dim);">
+            <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.2;"></i>
+            <p style="font-size: 1.1rem; font-weight: 500;">{{ t.no_players }}</p>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('playerSearch');
+        const noResults = document.getElementById('noResults');
+        const contentArea = document.querySelector('.content-area');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const items = document.querySelectorAll('tbody tr, .rank-card');
+                let visibleCount = 0;
+
+                items.forEach(item => {
+                    const nameCell = item.querySelector('.p-name');
+                    if (nameCell) {
+                        const name = nameCell.textContent.toLowerCase();
+                        if (name.includes(term)) {
+                            item.style.display = item.tagName === 'TR' ? '' : 'flex';
+                            visibleCount++;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    }
+                });
+
+                if (visibleCount === 0) {
+                    noResults.style.display = 'block';
+                } else {
+                    noResults.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

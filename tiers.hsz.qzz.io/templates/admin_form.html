@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ "Edit" if player else "Add" }} Player - HSZ Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .form-container { max-width: 600px; margin: 50px auto; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .head-preview { width: 64px; height: 64px; border: 1px solid #ddd; padding: 2px; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>{{ "Edit" if player else "Add" }} Player</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Player Name</label>
+                <input type="text" name="name" class="form-control" value="{{ player.name if player else '' }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Skin File (64x32 or 64x64 PNG)</label>
+                <input type="file" name="skin" class="form-control">
+                <div class="mt-2">
+                    <label class="form-label d-block">Model Type:</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="model_type" id="modelSteve" value="steve" {{ 'checked' if not player or player.model_type == 'steve' else '' }}>
+                        <label class="form-check-label" for="modelSteve">Steve (4px arms)</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="model_type" id="modelAlex" value="alex" {{ 'checked' if player and player.model_type == 'alex' else '' }}>
+                        <label class="form-check-label" for="modelAlex">Alex (3px arms)</label>
+                    </div>
+                </div>
+                {% if player and player.skin_path %}
+                <small class="text-muted">Leave empty to keep current skin.</small>
+                <img src="{{ url_for('static', filename='skins/' + player.name + '_head.png') }}" class="head-preview d-block mt-2">
+                {% else %}
+                <small class="text-muted">No skin uploaded yet. (Optional)</small>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="is_untested" class="form-check-input" id="untestedCheck" {{ 'checked' if player and player.is_untested else '' }} onchange="handleUntested()">
+                <label class="form-check-label" for="untestedCheck">Untested</label>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="has_note" class="form-check-input" id="noteToggle" {{ 'checked' if player and player.note else '' }} onchange="toggleNoteField()">
+                <label class="form-check-label" for="noteToggle">Note</label>
+            </div>
+
+            <div id="noteField" class="mb-3" style="display: {{ 'block' if player and player.note else 'none' }};">
+                <label class="form-label">Note Content</label>
+                <input type="text" name="note" class="form-control" placeholder="e.g. untested known w10 player" value="{{ player.note if player and player.note else '' }}">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Region</label>
+                    <select name="region" class="form-select">
+                        <option value="SA" {{ 'selected' if player and player.region == 'SA' else '' }}>SA</option>
+                        <option value="NA" {{ 'selected' if player and player.region == 'NA' else '' }}>NA</option>
+                        <option value="EU" {{ 'selected' if player and player.region == 'EU' else '' }}>EU</option>
+                        <option value="AS" {{ 'selected' if player and player.region == 'AS' else '' }}>AS</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Overall Rank (Numeric)</label>
+                    <input type="number" name="overall_rank" id="rankInput" class="form-control" value="{{ player.overall_rank if player else '100' }}" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Tier</label>
+                <input type="text" name="tier" id="tierInput" class="form-control" placeholder="e.g. HT1, LT2, None" value="{{ player.tier if player else 'None' }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-4">{{ "Save Changes" if player else "Add Player" }}</button>
+            <a href="/" class="btn btn-link w-100">Cancel</a>
+        </form>
+    </div>
+
+    <script>
+        function toggleNoteField() {
+            const toggle = document.getElementById('noteToggle');
+            const field = document.getElementById('noteField');
+            field.style.display = toggle.checked ? 'block' : 'none';
+        }
+
+        function handleUntested() {
+            const isUntested = document.getElementById('untestedCheck').checked;
+            const rankInput = document.getElementById('rankInput');
+            const tierInput = document.getElementById('tierInput');
+            
+            if (isUntested) {
+                // If you want to keep the current values for later, maybe don't overwrite if editing?
+                // But as per the instruction: "if Untested, the tier will be N/A and Overall Rank will be also N/A"
+                // For Numeric Rank input, N/A isn't possible, we'll use 0 internally and show N/A in UI
+                rankInput.value = 999; // Set a high number for ranking bottom
+                tierInput.value = 'N/A';
+            }
+        }
+    </script>
+</body>
+</html>

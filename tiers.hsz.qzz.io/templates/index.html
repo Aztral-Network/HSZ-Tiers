@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="disclaimer-banner">
+    <i class="fab fa-discord"></i> {{ t.disclaimer }}
+</div>
+
+<div class="ranking-container">
+    {% for player in players %}
+    <div class="rank-card tier-{{ player.tier }} {% if player.overall_rank == 1 %}top-1{% elif player.overall_rank == 2 %}top-2{% elif player.overall_rank == 3 %}top-3{% endif %}">
+        <!-- Rank Number -->
+        <div class="card-rank {% if player.overall_rank == 1 %}rank-gold{% elif player.overall_rank == 2 %}rank-silver{% elif player.overall_rank == 3 %}rank-bronze{% endif %}">
+            {% if player.is_untested %}N/A{% else %}{{ player.overall_rank }}.{% endif %}
+        </div>
+
+        <!-- Player Info -->
+        <div class="card-info">
+            <div class="card-name-row">
+                <span class="p-name">{{ player.name }}</span>
+                {% if player.is_untested %}
+                <span class="p-untested">{{ t.untested }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="card-badges">
+                {% if not player.is_untested %}
+                <span class="t-badge t-{{ player.tier }}">{{ player.tier }}</span>
+                {% else %}
+                <span class="t-badge t-None">N/A</span>
+                {% endif %}
+                
+                {% if player.region %}
+                <span class="p-region">{{ player.region }}</span>
+                {% endif %}
+
+                {% if player.note %}
+                <div class="p-note" style="margin: 0; display: inline-block; color: rgba(255,255,255,0.6); font-size: 0.7rem;">
+                    | {{ player.note }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Body Render -->
+        <div class="card-body-render">
+            {% if player.skin_path %}
+            <img src="{{ url_for('static', filename='skins/' + player.name + '_body.png') }}" alt="{{ player.name }}">
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
