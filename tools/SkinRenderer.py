@@ -151,19 +151,27 @@ class SkinRenderer:
         print(f"3D render saved to {output_path}")
 
 def main():
-    if len(sys.argv) != 4:
-        print("Usage: SkinRenderer.py {type} {skin png} {output png}")
+    if len(sys.argv) not in (4, 5):
+        print("Usage: SkinRenderer.py {type} {skin png} {output png} [model]")
         print("Types: head, 3d")
+        print("Model (optional): alex, steve (default: auto-detect)")
         sys.exit(1)
     
     render_type = sys.argv[1].lower()
     skin_path = sys.argv[2]
     output_path = sys.argv[3]
+    model_type = None
+    
+    if len(sys.argv) == 5:
+        model_type = sys.argv[4].lower()
+        if model_type not in ("alex", "steve"):
+            print("Error: Model type must be 'alex' or 'steve'")
+            sys.exit(1)
     
     if render_type == "head":
         extract_head(skin_path, output_path)
     elif render_type == "3d":
-        renderer = SkinRenderer(skin_path)
+        renderer = SkinRenderer(skin_path, model_type=model_type)
         renderer.render(output_path)
     else:
         print(f"Unknown type: {render_type}")
